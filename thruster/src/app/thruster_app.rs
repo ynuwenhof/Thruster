@@ -131,6 +131,15 @@ impl<R: 'static + ThrusterRequest, T: Context + Clone + Send + Sync, S: 'static 
         self
     }
 
+    /// Add method-agnostic middleware for a route. This is useful for applying headers, logging, and
+    /// anything else that might not be sensitive to the HTTP method for the endpoint.
+    pub fn middleware(self, path: &str, middlewares: MiddlewareTuple<ReturnValue<T>>) -> Self
+    where
+        T: Clone,
+    {
+        self.use_middleware(path, middlewares)
+    }
+
     /// Add an app as a predetermined set of routes and middleware. Will prefix whatever string is passed
     /// in to all of the routes. This is a main feature of Thruster, as it allows projects to be extermely
     /// modular and composeable in nature.
@@ -143,6 +152,13 @@ impl<R: 'static + ThrusterRequest, T: Context + Clone + Send + Sync, S: 'static 
         self.patch_root.add_node_at_path(prefix, app.patch_root);
 
         self
+    }
+
+    /// Add an app as a predetermined set of routes and middleware. Will prefix whatever string is passed
+    /// in to all of the routes. This is a main feature of Thruster, as it allows projects to be extermely
+    /// modular and composeable in nature.
+    pub fn nest(self, prefix: &str, app: App<R, T, S>) -> Self {
+        self.use_sub_app(prefix, app)
     }
 
     /// Add a route that responds to `GET`s to a given path
